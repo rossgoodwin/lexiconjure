@@ -30,7 +30,7 @@ CHARRNN_PATH = '/home/ubuntu/char-rnn'
 SCRIPT_PATH = '/home/ubuntu/lexiconjure'
 
 # ADD RNN MODEL PATH!!!
-RNN_MODEL_PATH = '/home/ubuntu/models/lm_oed_epoch25.17_0.7485.t7_cpu.t7'
+RNN_MODEL_PATH = '/home/ubuntu/models/lm_oed_epoch33.57_0.7451.t7_cpu.t7'
 
 
 # In[30]:
@@ -89,7 +89,7 @@ def make_definition_tweet(word, screen_name=''):
     # Back to original working directory
     os.chdir(SCRIPT_PATH)
 
-    definition_lines = raw_definition.split(' | ')[2:]
+    definition_lines = raw_definition.split('\n', 1)[0].split(' | ')[2:]
 
     definition = word
     for i, line in enumerate(definition_lines):
