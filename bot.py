@@ -95,6 +95,9 @@ def make_definition_tweet(word, screen_name=''):
     for i, line in enumerate(definition_lines):
         definition += '\n'+line
         chars_remaining -= len('\n'+line)
+        # if not on the last line and next
+        # line has too many characters,
+        # cut the next line...
         if len(definition_lines) > i+1 and chars_remaining < len(definition_lines[i+1]):
             break
 
@@ -171,7 +174,7 @@ stream = tweepy.Stream(auth, StreamResponder(), timeout=None)
 
 # In[36]:
 
-bot_id = str(tweepy.API(auth).get_user(BOTNAME).id)
+bot_id = str(api.get_user(BOTNAME).id)
 
 
 # In[37]:
