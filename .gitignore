@@ -1,5 +1,6 @@
+env/
 *.out
 *.err
 *.pyc
 twitter_credentials.py
-
+tumblr_credentials.py

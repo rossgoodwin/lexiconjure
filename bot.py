@@ -21,6 +21,7 @@ from tweepy.streaming import StreamListener
 
 import twitter_credentials
 import genetic
+from tumblr_post import post_to_tumblr
 
 
 # In[29]:
@@ -38,6 +39,8 @@ RNN_MODEL_PATH = '/home/ubuntu/models/lm_oed_epoch33.57_0.7451.t7_cpu.t7'
 with open('badwords.json', 'r') as infile:
     badwords = json.load(infile)
 
+with open('seed.txt', 'r') as infile:
+    seed = infile.read().strip().decode('utf8')
 
 # In[31]:
 
@@ -62,20 +65,20 @@ def make_definition_tweet(word, screen_name=''):
 
     os.chdir(CHARRNN_PATH)
 
-    gen_seed = '%s | %s | ' % (word, word)
+    gen_seed = '%s\n%s | %s | ' % (seed, word, word)
     
     rnn_cmd_list = [
         'th',
         'sample.lua',
         RNN_MODEL_PATH,
         '-length',
-        '256',
+        '1024',
         '-verbose',
         '0',
         '-temperature',
         '0.5',
         '-primetext',
-        gen_seed,
+        gen_seed.encode('utf8'),
         '-gpuid',
         '-1'
     ]
@@ -84,12 +87,25 @@ def make_definition_tweet(word, screen_name=''):
         rnn_cmd_list,
         stdout=subprocess.PIPE
     )
-    raw_definition = rnn_proc.stdout.read()
+    raw_definition = rnn_proc.stdout.read().decode('utf8')
 
     # Back to original working directory
     os.chdir(SCRIPT_PATH)
 
-    definition_lines = raw_definition.split('\n', 1)[0].split(' | ')[2:]
+    # Take the 2nd paragraph, split training format into lines
+    definition_grafs = filter(lambda y: y, map(lambda x: x.strip(), raw_definition.split('\n')))
+    definition_lines = definition_grafs[1].split(u' | ')[2:]
+
+    user_credit = '<a href="https://twitter.com/%s">@%s</a>' % (screen_name, screen_name)
+    tumblr_def = '\n'.join(definition_lines)
+
+    if len(definition_grafs) == 2:
+        tumblr_def = tumblr_def.rsplit('\n', 1)[0]
+
+    if screen_name:
+        tumblr_def += '\n%s' % user_credit
+
+    post_to_tumblr(word.encode('utf8'), tumblr_def.encode('utf8'), source=screen_name)
 
     definition = word
     for i, line in enumerate(definition_lines):
@@ -97,7 +113,7 @@ def make_definition_tweet(word, screen_name=''):
         chars_remaining -= len('\n'+line)
         # if not on the last line and next
         # line has too many characters,
-        # cut the next line...
+        # stop adding lines...
         if len(definition_lines) > i+1 and chars_remaining < len(definition_lines[i+1]):
             break
 
@@ -105,9 +121,9 @@ def make_definition_tweet(word, screen_name=''):
         definition = definition[:chars_remaining-3] + '...'
 
     if screen_name:
-        return '%s\n@%s' % (definition, screen_name)
-    else:
-        return definition
+        definition = '%s\n@%s' % (definition, screen_name)
+
+    return definition.encode('utf8')
 
 
 # In[33]:
