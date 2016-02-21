@@ -146,6 +146,7 @@ def process_status(author, text):
     if not any(w in to_define.lower() for w in badwords):
         tweet_text = make_definition_tweet(to_define, screen_name=author)
         api.update_status(tweet_text)
+        time.sleep(120)
     else:
         print "BANNED WORD DETECTED"
 
@@ -155,11 +156,11 @@ def process_status(author, text):
 class StreamResponder(StreamListener):
     
     def on_status(self, status):
-        # try:
-        if status.author.screen_name.lower() != BOTNAME and not status.text.startswith('RT'):
-            process_status(status.author.screen_name, status.text)
-        # except:
-        #     print sys.exc_info()
+        try:
+            if status.author.screen_name.lower() != BOTNAME and not status.text.startswith('RT'):
+                process_status(status.author.screen_name, status.text)
+        except:
+            print sys.exc_info()
             
         return True
     
