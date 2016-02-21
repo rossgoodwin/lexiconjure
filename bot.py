@@ -66,6 +66,8 @@ def make_definition_tweet(word, screen_name=''):
     os.chdir(CHARRNN_PATH)
 
     gen_seed = '%s\n%s | %s | ' % (seed, word, word)
+
+    # print "DEFINING:\t", repr(gen_seed)
     
     rnn_cmd_list = [
         'th',
@@ -89,28 +91,35 @@ def make_definition_tweet(word, screen_name=''):
     )
     raw_definition = rnn_proc.stdout.read().decode('utf8')
 
+    print "RAW OUTPUT:"
+    print repr(raw_definition)
+
     # Back to original working directory
     os.chdir(SCRIPT_PATH)
 
     # Take the 2nd paragraph, split training format into lines
-    definition_grafs = filter(lambda y: y, map(lambda x: x.strip(), raw_definition.split('\n')))
+    definition_grafs = filter(lambda y: y, map(lambda x: x.strip(), raw_definition.split(u'\n')))
     definition_lines = definition_grafs[1].split(u' | ')[2:]
 
-    user_credit = '<a href="https://twitter.com/%s">@%s</a>' % (screen_name, screen_name)
-    tumblr_def = '\n'.join(definition_lines)
+    user_credit = u'<a href="https://twitter.com/%s">@%s</a>' % (screen_name, screen_name)
+    tumblr_def = u'\n'.join(definition_lines)
 
     if len(definition_grafs) == 2:
-        tumblr_def = tumblr_def.rsplit('\n', 1)[0]
+        tumblr_def = tumblr_def.rsplit(u'\n', 1)[0]
 
     if screen_name:
-        tumblr_def += '\n%s' % user_credit
+        tumblr_def += u'\n%s' % user_credit
 
-    post_to_tumblr(word.encode('utf8'), tumblr_def.encode('utf8'), source=screen_name)
+    post_to_tumblr(
+        unicode(word).encode('utf8'),
+        unicode(tumblr_def).encode('utf8'),
+        source=screen_name
+    )
 
-    definition = word
+    definition = unicode(word)
     for i, line in enumerate(definition_lines):
-        definition += '\n'+line
-        chars_remaining -= len('\n'+line)
+        definition += u'\n'+line
+        chars_remaining -= len(u'\n'+line)
         # if not on the last line and next
         # line has too many characters,
         # stop adding lines...
@@ -118,12 +127,12 @@ def make_definition_tweet(word, screen_name=''):
             break
 
     if chars_remaining < 0:
-        definition = definition[:chars_remaining-3] + '...'
+        definition = definition[:chars_remaining-3] + u'...'
 
     if screen_name:
-        definition = '%s\n@%s' % (definition, screen_name)
+        definition = u'%s\n@%s' % (definition, screen_name)
 
-    return definition.encode('utf8')
+    return unicode(definition).encode('utf8')
 
 
 # In[33]:
@@ -137,6 +146,8 @@ def process_status(author, text):
     if not any(w in to_define.lower() for w in badwords):
         tweet_text = make_definition_tweet(to_define, screen_name=author)
         api.update_status(tweet_text)
+    else:
+        print "BANNED WORD DETECTED"
 
 
 # In[34]:
@@ -144,11 +155,11 @@ def process_status(author, text):
 class StreamResponder(StreamListener):
     
     def on_status(self, status):
-        try:
-            if status.author.screen_name.lower() != BOTNAME and not status.text.startswith('RT'):
-                process_status(status.author.screen_name, status.text)
-        except:
-            print sys.exc_info()
+        # try:
+        if status.author.screen_name.lower() != BOTNAME and not status.text.startswith('RT'):
+            process_status(status.author.screen_name, status.text)
+        # except:
+        #     print sys.exc_info()
             
         return True
     
