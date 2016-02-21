@@ -1,6 +1,6 @@
 # lexiconjure
 
-[@lexiconjure](https://twitter.com/lexiconjure) is a twitter bot that uses machine learning to define invented words, posting trucated definitions on Twitter and complete ones [on Tumblr](http://lexiconjure.tumblr.com).
+[@lexiconjure](https://twitter.com/lexiconjure) is a twitter bot that uses machine learning to define invented words, posting truncated definitions on Twitter and complete ones [on Tumblr](http://lexiconjure.tumblr.com).
 
 It uses an [LSTM](https://en.wikipedia.org/wiki/Long_short-term_memory) neural network trained on the [Oxford English Dictionary](http://www.oed.com/). When you tweet a word (real or made up) @ the bot, you're seeding that generator.
 
